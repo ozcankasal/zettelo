@@ -13,7 +13,7 @@ Zettelo is built with Golang and is designed to be fast, efficient, and easy to 
 * Go 1.16 or later
 * Git
 
-## Steps
+## Steps
 
 1. Clone the repository: `git clone https://github.com/your-username/your-repo.git`
 2. Navigate to the project directory: `cd your-repo`
