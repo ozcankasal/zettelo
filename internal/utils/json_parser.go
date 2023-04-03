@@ -81,3 +81,13 @@ func ReadJSON(r io.Reader) ([]internal.TaggedLine, error) {
 	}
 	return lines, err
 }
+
+func ParseConfig(configData []byte) (*internal.Config, error) {
+	var config internal.Config
+	err := json.Unmarshal(configData, &config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &config, nil
+}
