@@ -1,0 +1,7 @@
+{
+    "tag_mappings": {
+        "#todo": "todo",
+        "#to-do": "todo",
+        "#todo:": "todo"
+    }
+}
