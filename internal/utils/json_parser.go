@@ -30,16 +30,19 @@ Returns:
 
 	(error): if an error occurred during marshaling or writing, returns the error; otherwise, returns nil.
 */
-func WriteJSON(w io.Writer, lines []internal.TaggedLine) error {
+func WriteJSON(w io.Writer, lines []internal.TaggedLine) ([]byte, error) {
 	// Convert []TaggedLine to []byte
 	b, err := json.Marshal(lines)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Write []byte to io.Writer
 	_, err = w.Write(b)
-	return err
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }
 
 /*
