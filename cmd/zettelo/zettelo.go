@@ -4,16 +4,35 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/ozcankasal/zettelo/internal"
 	"github.com/ozcankasal/zettelo/internal/utils"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/gorilla/websocket"
 )
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+var hashtags []byte
+
 func main() {
-	// Read folder from command line argument
-	foldername := getFolderNameFromArgs()
+	updates := make(chan []string)
+	// Initialize the file system watcher
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer watcher.Close()
 
 	// Read configuration from environment variable
 	config, err := getConfigFromEnv()
@@ -22,13 +41,85 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Scan all markdown files in folder
-	files, err := scanFolder(foldername)
+	// Read folder from command line argument
+	foldername := getFolderNameFromArgs()
+	fmt.Println(foldername)
+
+	// Start listening for events.
+	go func() {
+		for {
+			select {
+			case event, ok := <-watcher.Events:
+				if !ok {
+					return
+				}
+				if event.Has(fsnotify.Write) {
+					hashtags = getHashtags(foldername, config)
+					updates <- []string{"update"}
+				}
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
+				log.Println("error:", err)
+			}
+		}
+	}()
+
+	err = filepath.Walk(foldername, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			err = watcher.Add(path)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+		return nil
+	})
 	if err != nil {
-		fmt.Printf("Failed to scan folder %s: %v\n", foldername, err)
+		fmt.Println(err)
+	}
+
+	err = watcher.Add(foldername)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	http.Handle("/", http.FileServer(http.Dir("./static")))
+
+	go handle(updates)
+	fmt.Println(http.ListenAndServe(":8080", nil))
+}
+
+func handle(updates chan []string) {
+	http.HandleFunc("/hashtags", func(w http.ResponseWriter, r *http.Request) {
+
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			fmt.Println("Error upgrading connection:", err)
+			return
+		}
+		defer conn.Close()
+		conn.WriteMessage(websocket.TextMessage, hashtags)
+
+		for {
+			lines := <-updates
+			fmt.Println(lines)
+			conn.WriteMessage(websocket.TextMessage, hashtags)
+		}
+
+	})
+}
+
+func getHashtags(folderName string, config *internal.Config) []byte {
+
+	files, err := scanFolder(folderName)
+	if err != nil {
+		fmt.Printf("Failed to scan folder %s: %v\n", folderName, err)
 		os.Exit(1)
 	}
-	fmt.Println(files)
 
 	// Combine tagged lines from all files
 	taggedLinesByFile := extractTaggedLinesFromFiles(files, *config)
@@ -40,11 +131,13 @@ func main() {
 	outputLines := convertToTaggedLines(groupedLines)
 
 	// Write JSON output to stdout
-	err = utils.WriteJSON(os.Stdout, outputLines)
+	b, err := utils.WriteJSON(os.Stdout, outputLines)
 	if err != nil {
 		fmt.Printf("Failed to write JSON output: %v\n", err)
 		os.Exit(1)
 	}
+
+	return b
 }
 
 func getFolderNameFromArgs() string {
