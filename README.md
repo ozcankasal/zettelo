@@ -15,37 +15,24 @@ Zettelo is built with Golang and is designed to be fast, efficient, and easy to 
 
 ## Steps
 
-1. Clone the repository: `git clone https://github.com/your-username/your-repo.git`
+1. Clone the repository: `git clone https://github.com/ozcankasal/zettelo.git`
 2. Navigate to the project directory: `cd your-repo`
-3. Build the binary: `go build -o zettelo cmd/zettelo/zettelo.go`
-4. Run the binary with the path to your markdown files directory as an argument: `./zettelo /path/to/your/files`
+3. Create a YAML configuration file with your tag mappings. Here is an example `config.yaml` file (which is in `samples` folder)
+   
+  ```
+  tag_mappings:
+    "#todo": todo
+    "#to-do": todo
+    "#todo:": todo
+  ```
 
-The output will be a JSON array of TaggedLine structs with the following format:
-
+4. Export the path to the YAML configuration file as an environment variable. 
+This tells the program where to find the configuration file.
 ```
-[
-  {
-    "tag": "tag1",
-    "values": [
-      {
-        "file_path": "/path/to/file1.md",
-        "line": "line containing the tag"
-      },
-      {
-        "file_path": "/path/to/file2.md",
-        "line": "another line containing the tag"
-      }
-    ]
-  },
-  {
-    "tag": "tag2",
-    "values": [
-      {
-        "file_path": "/path/to/file1.md",
-        "line": "line containing tag2"
-      }
-    ]
-  }
-]
-
+export ZETTELO_CONFIG=/path/to/config.yaml
 ```
+
+4. Retrieve the dependencies with `go get ./...`
+5. Build the binary: `go build -o zettelo cmd/zettelo/zettelo.go`
+6. Run the binary with the path to your markdown files directory as an argument: `./zettelo /path/to/your/files`
+7. Open your web browser and go to `localhost:8080` to view tags and their corresponding file locations.
