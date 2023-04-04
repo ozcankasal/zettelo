@@ -1,7 +1,3 @@
----
-id: 123230232
----
-
 # Zettelo: The Hassle-free Zettelkasten
 
 Zettelo is a simple command-line tool that helps you convert your Markdown files to a Zettelkasten knowledge base. The tool allows you to quickly organize your notes and research, while avoiding the hassle of manually sifting through your files for specific information.
@@ -28,7 +24,7 @@ At the top level, we have the `#note` tag, which is used for any kind of note yo
 * `#log`: For notes that contain daily logs or journal entries.
 * `#people`: For notes that relate to people you interact with, such as colleagues, friends, or family members.
 
-By using these tags consistently, you can create a hierarchy of notes that allows you to quickly find and navigate related content. Additionally, you can use the [[double bracket syntax]] to create links between notes, allowing you to build a rich and interconnected knowledge base.
+By using these tags consistently, you can create a hierarchy of notes that allows you to quickly find and navigate related content. Additionally, you can use the `[[double bracket syntax]]` to create links between notes, allowing you to build a rich and interconnected knowledge base.
 
 
 ## Requirements
