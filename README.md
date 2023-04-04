@@ -1,3 +1,7 @@
+---
+id: 123230232
+---
+
 # Zettelo: The Hassle-free Zettelkasten
 
 Zettelo is a simple command-line tool that helps you convert your Markdown files to a Zettelkasten knowledge base. The tool allows you to quickly organize your notes and research, while avoiding the hassle of manually sifting through your files for specific information.
@@ -7,6 +11,25 @@ With Zettelo, all you have to do is specify the folder containing your Markdown 
 Zettelo is highly configurable, allowing you to customize the tagging format and output, as well as add your own custom tag mappings.
 
 Zettelo is built with Golang and is designed to be fast, efficient, and easy to use. Try it out today and take the first step towards effortless knowledge organization!
+
+## An Opinionated Zettelkasten Approach
+
+In this system, we use a set of predefined tags to create a well-structured and interconnected web of notes that reflects our thoughts and ideas.
+
+At the top level, we have the `#note` tag, which is used for any kind of note you create in your zettelkasten system. Underneath that, we have several subtags that allow you to categorize your notes in different ways:
+
+* `#reference`: For notes that contain reference material you want to keep in your zettelkasten system, such as articles, research papers, or books.
+* `#task`: For notes that contain tasks or action items you need to complete.
+* `#idea`: For notes that contain ideas or insights you want to explore further.
+* `#question`: For notes that contain questions or topics you want to research or explore further.
+* `#moc`: For notes that are part of a "map of content" you are creating in your zettelkasten system.
+* `#project`: For notes that are related to a specific project you are working on.
+* `#goal`: For notes that relate to your goals, objectives, or aspirations.
+* `#log`: For notes that contain daily logs or journal entries.
+* `#people`: For notes that relate to people you interact with, such as colleagues, friends, or family members.
+
+By using these tags consistently, you can create a hierarchy of notes that allows you to quickly find and navigate related content. Additionally, you can use the [[double bracket syntax]] to create links between notes, allowing you to build a rich and interconnected knowledge base.
+
 
 ## Requirements
 
