@@ -12,6 +12,7 @@ import (
 	"io"
 
 	"github.com/ozcankasal/zettelo/internal"
+	"gopkg.in/yaml.v2"
 )
 
 /*
@@ -87,7 +88,7 @@ func ReadJSON(r io.Reader) ([]internal.TaggedLine, error) {
 
 func ParseConfig(configData []byte) (*internal.Config, error) {
 	var config internal.Config
-	err := json.Unmarshal(configData, &config)
+	err := yaml.Unmarshal(configData, &config)
 	if err != nil {
 		return nil, err
 	}
