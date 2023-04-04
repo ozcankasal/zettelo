@@ -96,7 +96,7 @@ func ExtractTaggedLines(fileName string, data []byte, config internal.Config) in
 			for _, t := range tags {
 				tag := strings.TrimSpace(t)
 				value := strings.TrimSpace(strings.Replace(line, t, "", -1))
-				value = strings.TrimSpace(RemoveHashtagsFromLine(value))
+				// value = strings.TrimSpace(RemoveHashtagsFromLine(value))
 
 				// Map the tag to its canonical type
 				canonicalType := MapTagToCanonicalType(tag, config)
