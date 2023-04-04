@@ -10,13 +10,12 @@ import (
 )
 
 func SyncHeader(filePath string) {
-	fmt.Println("heere" + filePath)
 	header := readHeader(filePath)
 	if header != "" {
 		id := getId(header)
 
 		if id != "" {
-			fmt.Println(id)
+
 		} else {
 			fmt.Println("No ID found in header of", filePath)
 			newHeaderText := addId(header, getUUID())

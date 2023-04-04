@@ -92,7 +92,10 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 
 	go handle(updates)
-	fmt.Println(http.ListenAndServe(":8080", nil))
+	url := "localhost:8080"
+	fmt.Printf("Server is listening on %s. Click %s to open in browser.\n", url, url)
+
+	fmt.Println(http.ListenAndServe(url, nil))
 }
 
 func handle(updates chan []string) {
@@ -106,9 +109,7 @@ func handle(updates chan []string) {
 		defer conn.Close()
 		conn.WriteMessage(websocket.TextMessage, hashtags)
 
-		for {
-			lines := <-updates
-			fmt.Println(lines)
+		for range updates {
 			conn.WriteMessage(websocket.TextMessage, hashtags)
 		}
 
@@ -133,7 +134,7 @@ func getHashtags(folderName string, config *internal.Config) []byte {
 	outputLines := convertToTaggedLines(groupedLines)
 
 	// Write JSON output to stdout
-	b, err := utils.WriteJSON(os.Stdout, outputLines)
+	b, err := utils.WriteJSON(outputLines)
 	if err != nil {
 		fmt.Printf("Failed to write JSON output: %v\n", err)
 		os.Exit(1)
@@ -152,6 +153,7 @@ func getFolderNameFromArgs() string {
 
 func getConfigFromEnv() (*internal.Config, error) {
 	configData, err := ioutil.ReadFile(os.Getenv("ZETTELO_CONFIG"))
+
 	if err != nil {
 		return nil, err
 	}
@@ -178,8 +180,8 @@ func scanFolder(folderName string) ([]string, error) {
 	return files, nil
 }
 
-func extractTaggedLinesFromFiles(files []string, config internal.Config) map[string][]internal.TaggedLine {
-	taggedLinesByFile := make(map[string][]internal.TaggedLine)
+func extractTaggedLinesFromFiles(files []string, config internal.Config) map[string]internal.TagList {
+	taggedLinesByFile := make(map[string]internal.TagList)
 	for _, file := range files {
 		data, err := ioutil.ReadFile(file)
 		if err != nil {
@@ -197,7 +199,7 @@ func extractTaggedLinesFromFiles(files []string, config internal.Config) map[str
 }
 
 // groupTaggedLines groups the tagged lines by canonical type and file path
-func groupTaggedLines(taggedLinesByFile map[string][]internal.TaggedLine) map[string]map[string][]internal.ResultValue {
+func groupTaggedLines(taggedLinesByFile map[string]internal.TagList) map[string]map[string][]internal.ResultValue {
 	groupedLines := make(map[string]map[string][]internal.ResultValue)
 
 	for file, lines := range taggedLinesByFile {
@@ -220,8 +222,8 @@ func groupTaggedLines(taggedLinesByFile map[string][]internal.TaggedLine) map[st
 }
 
 // convertGroupedLinesToTaggedLines converts the grouped lines to an internal.TaggedLine slice
-func convertToTaggedLines(groupedLines map[string]map[string][]internal.ResultValue) []internal.TaggedLine {
-	var outputLines []internal.TaggedLine
+func convertToTaggedLines(groupedLines map[string]map[string][]internal.ResultValue) internal.TagList {
+	var outputLines internal.TagList
 	outputMap := make(map[string][]internal.ResultValue)
 
 	for tag, fileLines := range groupedLines {
