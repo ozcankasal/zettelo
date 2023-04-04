@@ -11,5 +11,19 @@ type ResultValue struct {
 }
 
 type Config struct {
-	TagMappings map[string]string `json:"tag_mappings"`
+	TagMappings map[string]string `yaml:"tag_mappings"`
+}
+
+type TagList []TaggedLine
+
+func (t TagList) Len() int {
+	return len(t)
+}
+
+func (t TagList) Less(i, j int) bool {
+	return t[i].Tag < t[j].Tag
+}
+
+func (t TagList) Swap(i, j int) {
+	t[i], t[j] = t[j], t[i]
 }
