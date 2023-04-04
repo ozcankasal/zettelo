@@ -43,7 +43,9 @@ func main() {
 
 	// Read folder from command line argument
 	foldername := getFolderNameFromArgs()
-	fmt.Println(foldername)
+	hashtags = getHashtags(foldername, config)
+
+	scanFolder(foldername)
 
 	// Start listening for events.
 	go func() {
@@ -165,6 +167,7 @@ func scanFolder(folderName string) ([]string, error) {
 			return err
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".md" {
+			utils.SyncHeader(path)
 			files = append(files, path)
 		}
 		return nil
