@@ -60,3 +60,18 @@ tag_mappings:
   "#to-do": "todo"
   "#todo:": "todo"
 ```
+
+
+## Features
+
+This project is in early days and most of the intended features are missing. Currently, the following features are available:
+
+* Extract hashtags from Markdown files
+* Tag them with custom tag mappings
+* Output them in a table format
+* Serve the output as a webpage on localhost:8080
+
+## Notice
+
+This repository is still in development and may contain bugs or missing features. Please use with caution and report any issues or feature requests to the repository's issue tracker.
+
