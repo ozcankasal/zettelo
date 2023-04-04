@@ -93,7 +93,7 @@ func TestExtractTaggedLines(t *testing.T) {
 	config := internal.Config{TagMappings: map[string]string{"#tag1": "#canonicalTag1", "#tag2": "#canonicalTag2"}}
 
 	// Expected output
-	expected := []internal.TaggedLine{
+	expected := internal.TagList{
 		{
 			Tag: "#canonicalTag1",
 			Values: []internal.ResultValue{

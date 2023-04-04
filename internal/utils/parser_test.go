@@ -12,7 +12,7 @@ import (
 
 func TestWriteJSON(t *testing.T) {
 	// Define some sample data
-	lines := []internal.TaggedLine{
+	lines := internal.TagList{
 		{
 			Tag: "tag1",
 			Values: []internal.ResultValue{
@@ -53,13 +53,13 @@ func TestReadJSON(t *testing.T) {
 	testCases := []struct {
 		name        string
 		input       string
-		expected    []internal.TaggedLine
+		expected    internal.TagList
 		expectedErr error
 	}{
 		{
 			name:  "valid input",
 			input: `[{"tag": "tag1", "values": [{"file_path": "file1", "line": "line1"}]},{"tag": "tag2", "values": [{"file_path": "file2", "line": "line2"}]}]`,
-			expected: []internal.TaggedLine{
+			expected: internal.TagList{
 				{
 					Tag: "tag1",
 					Values: []internal.ResultValue{

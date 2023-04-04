@@ -78,10 +78,10 @@ Parameters:
 
 Returns:
 
-	([]internal.TaggedLine): the tagged lines in the file contents with their values and file paths (if any)
+	(internal.TagList): the tagged lines in the file contents with their values and file paths (if any)
 */
-func ExtractTaggedLines(fileName string, data []byte, config internal.Config) []internal.TaggedLine {
-	var result []internal.TaggedLine
+func ExtractTaggedLines(fileName string, data []byte, config internal.Config) internal.TagList {
+	var result internal.TagList
 	var currentTag string
 
 	reader := bytes.NewReader(data)
