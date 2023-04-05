@@ -36,25 +36,31 @@ By using these tags consistently, you can create a hierarchy of notes that allow
 
 1. Clone the repository: `git clone https://github.com/ozcankasal/zettelo.git`
 2. Navigate to the project directory: `cd your-repo`
-3. Create a YAML configuration file with your tag mappings. Here is an example `config.yaml` file (which is in `samples` folder)
+3. Create a YAML configuration file with your settings. Here is an example `config.yaml` file (which is in `samples` folder). Add your folders (multiple folders support added now!)
    
   ```yaml
+# Web server configuration
+web:
+  port: 8080
+  host: localhost
+
+# Application-specific settings
+app:
   tag_mappings:
-    "#todo": todo
-    "#to-do": todo
-    "#todo:": todo
+    #todo: #todo
+    #to-do: #todo
+    #todo: #todo
+  folders:
+    - /path/to/folder1
+    - /path/to/folder2
   ```
 
-4. Export the path to the YAML configuration file as an environment variable. 
-This tells the program where to find the configuration file.
-```
-export ZETTELO_CONFIG=/path/to/config.yaml
-```
+4. Move this file to `~/.zettelo/config.yaml`
 
-4. Retrieve the dependencies with `go get ./...`
-5. Build the binary: `go build -o zettelo cmd/zettelo/zettelo.go`
-6. Run the binary with the path to your markdown files directory as an argument: `./zettelo /path/to/your/files`
-7. Open your web browser and go to `localhost:8080` to view tags and their corresponding file locations.
+5. Retrieve the dependencies with `go get ./...`
+3. Build the binary: `go build -o zettelo cmd/zettelo/zettelo.go`
+4. Run the binary with the path to your markdown files directory as an argument: `./zettelo`
+5. Open your web browser and go to `localhost:8080` to view tags and their corresponding file locations.
 
 The output will be a table with the following format:
 

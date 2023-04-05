@@ -1,4 +1,18 @@
-tag_mappings:
-  "#todo": "#todo"
-  "#to-do": "#todo"
-  "#todo:": "#todo"
+# This is the configuration file for Zettelo.
+# It is written in YAML format.
+# For more information about the YAML format, see http://yaml.org/
+
+# Web server configuration
+web:
+  port: 8080
+  host: localhost
+
+# Application-specific settings
+app:
+  tag_mappings:
+    #todo: #todo
+    #to-do: #todo
+    #todo: #todo
+  folders:
+    - /path/to/folder1
+    - /path/to/folder2
