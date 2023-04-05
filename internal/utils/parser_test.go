@@ -41,9 +41,7 @@ func TestWriteJSON(t *testing.T) {
 		},
 	}
 
-	// Write the data to a buffer
-	var buf bytes.Buffer
-	_, err := utils.WriteJSON(&buf, lines)
+	_, err := utils.WriteJSON(lines)
 	if err != nil {
 		t.Errorf("WriteJSON failed: %v", err)
 	}
