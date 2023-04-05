@@ -11,7 +11,15 @@ type ResultValue struct {
 }
 
 type Config struct {
-	TagMappings map[string]string `yaml:"tag_mappings"`
+	Web struct {
+		Port int    `yaml:"port"`
+		Host string `yaml:"host"`
+	} `yaml:"web"`
+
+	App struct {
+		TagMappings map[string]string `yaml:"tag_mappings"`
+		Folders     []string          `yaml:"folders"`
+	} `yaml:"app"`
 }
 
 type TagList []TaggedLine

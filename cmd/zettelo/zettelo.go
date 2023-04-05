@@ -16,6 +16,58 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const configContent = `
+# This is the configuration file for Zettelo.
+# It is written in YAML format.
+# For more information about the YAML format, see http://yaml.org/
+
+# Web server configuration
+web:
+  port: 8080
+  host: localhost
+
+# Application-specific settings
+app:
+  tag_mappings:
+    #todo: #todo
+    #to-do: #todo
+    #todo: #todo
+  folders:
+    - /path/to/folder1
+    - /path/to/folder2
+`
+
+func getConfigPath() (string, error) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+
+	configDir := filepath.Join(homeDir, ".zettelo")
+	if _, err := os.Stat(configDir); os.IsNotExist(err) {
+		if err := os.Mkdir(configDir, 0755); err != nil {
+			return "", err
+		}
+	}
+
+	configPath := filepath.Join(configDir, "config.yaml")
+	return configPath, nil
+}
+
+func createConfigFile(path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(configContent)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -35,17 +87,57 @@ func main() {
 	defer watcher.Close()
 
 	// Read configuration from environment variable
-	config, err := getConfigFromEnv()
+	configPath, _ := getConfigPath()
+
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		if err := createConfigFile(configPath); err != nil {
+			fmt.Printf("Failed to create configuration file: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	// read the configuration file
+	configData, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		panic(err)
+	}
+
+	config, err := utils.ParseConfig(configData)
 	if err != nil {
 		fmt.Printf("Failed to read configuration: %v\n", err)
 		os.Exit(1)
 	}
 
 	// Read folder from command line argument
-	foldername := getFolderNameFromArgs()
-	hashtags = getHashtags(foldername, config)
+	folderList := config.App.Folders
+	if len(folderList) == 0 {
+		fmt.Println("No folders specified in configuration file.")
+		os.Exit(1)
+	}
+	for _, folder := range folderList {
+		scanFolder(folder)
+	}
 
-	scanFolder(foldername)
+	hashtags = getHashtags(folderList, config)
+
+	for folder := range folderList {
+		foldername := folderList[folder]
+		err = filepath.Walk(foldername, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				err = watcher.Add(path)
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 
 	// Start listening for events.
 	go func() {
@@ -56,7 +148,7 @@ func main() {
 					return
 				}
 				if event.Has(fsnotify.Write) {
-					hashtags = getHashtags(foldername, config)
+					hashtags = getHashtags(folderList, config)
 					updates <- []string{"update"}
 				}
 			case err, ok := <-watcher.Errors:
@@ -68,31 +160,11 @@ func main() {
 		}
 	}()
 
-	err = filepath.Walk(foldername, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			err = watcher.Add(path)
-			if err != nil {
-				fmt.Println(err)
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	err = watcher.Add(foldername)
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 
 	go handle(updates)
-	url := "localhost:8080"
+
+	url := fmt.Sprintf("%s:%d", config.Web.Host, config.Web.Port)
 	fmt.Printf("Server is listening on %s. Click %s to open in browser.\n", url, url)
 
 	fmt.Println(http.ListenAndServe(url, nil))
@@ -116,25 +188,31 @@ func handle(updates chan []string) {
 	})
 }
 
-func getHashtags(folderName string, config *internal.Config) []byte {
+func getHashtags(folderList []string, config *internal.Config) []byte {
+	tempHashtagList := internal.TagList{}
+	for _, folderName := range folderList {
+		files, err := scanFolder(folderName)
+		if err != nil {
+			fmt.Printf("Failed to scan folder %s: %v\n", folderName, err)
+			os.Exit(1)
+		}
 
-	files, err := scanFolder(folderName)
-	if err != nil {
-		fmt.Printf("Failed to scan folder %s: %v\n", folderName, err)
-		os.Exit(1)
+		// Combine tagged lines from all files
+		taggedLinesByFile := extractTaggedLinesFromFiles(files, *config)
+
+		// Group tagged lines by canonical type and file path
+		groupedLines := groupTaggedLines(taggedLinesByFile)
+
+		// Convert to internal.TaggedLine slice
+		outputLines := convertToTaggedLines(groupedLines)
+
+		tempHashtagList = append(tempHashtagList, outputLines...)
+
 	}
 
-	// Combine tagged lines from all files
-	taggedLinesByFile := extractTaggedLinesFromFiles(files, *config)
-
-	// Group tagged lines by canonical type and file path
-	groupedLines := groupTaggedLines(taggedLinesByFile)
-
-	// Convert to internal.TaggedLine slice
-	outputLines := convertToTaggedLines(groupedLines)
-
 	// Write JSON output to stdout
-	b, err := utils.WriteJSON(outputLines)
+	b, err := utils.WriteJSON(tempHashtagList)
+
 	if err != nil {
 		fmt.Printf("Failed to write JSON output: %v\n", err)
 		os.Exit(1)
@@ -151,24 +229,16 @@ func getFolderNameFromArgs() string {
 	return os.Args[1]
 }
 
-func getConfigFromEnv() (*internal.Config, error) {
-	configData, err := ioutil.ReadFile(os.Getenv("ZETTELO_CONFIG"))
-
-	if err != nil {
-		return nil, err
-	}
-
-	return utils.ParseConfig(configData)
-}
-
 // Scan folder recursively for markdown files
 func scanFolder(folderName string) ([]string, error) {
+	fmt.Println(folderName)
 	var files []string
 	err := filepath.Walk(folderName, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if !info.IsDir() && filepath.Ext(path) == ".md" {
+			fmt.Println(path)
 			utils.SyncHeader(path)
 			files = append(files, path)
 		}
