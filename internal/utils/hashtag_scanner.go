@@ -27,7 +27,7 @@ Returns:
 	(string): the canonical type of the tag, or an empty string if the tag is not mapped to a canonical type
 */
 func MapTagToCanonicalType(tag string, config internal.Config) string {
-	for tagKey, tagValue := range config.TagMappings {
+	for tagKey, tagValue := range config.App.TagMappings {
 		if tag == tagKey {
 			return tagValue
 		}
